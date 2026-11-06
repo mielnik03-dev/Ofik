@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Блокнот официанта</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#EEF1F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1513" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Блокнот">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Onest:wght@400;500;600&display=swap">
+<style>
+/* Layout: зал из 10 столов списком строк. Внутри стола блюда по курсам, у каждого блюда метка цеха. Кнопка действия справа под большой палец, удаление смахиванием влево. */
+:root{
+  --bg:#EEF1F0;
+  --surface:#FFFFFF;
+  --surface-2:#E3E8E6;
+  --fg:#14201C;
+  --muted:#5B6A65;
+  --line:#D0D8D5;
+  --accent:#2848D8;
+  --accent-fg:#FFFFFF;
+  --accent-soft:#E1E7FD;
+  --ok:#1E7F4F;
+  --ok-soft:#DDF1E6;
+  --on-ok:#FFFFFF;
+  --warn:#A76200;
+  --warn-soft:#FBEBCB;
+  --late:#C0302B;
+  --late-soft:#FADBD8;
+  --on-late:#FFFFFF;
+  --zb:#0B6F7A;
+  --zb-soft:#D6EFF1;
+  --zd:#A3336A;
+  --zd-soft:#F6DCE9;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-num:"Barlow Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1513;--surface:#182220;--surface-2:#212E2B;--fg:#E8EFEC;--muted:#93A39D;--line:#2B3A36;
+    --accent:#8AA0FF;--accent-fg:#0B1020;--accent-soft:#232C57;
+    --ok:#5DD39A;--ok-soft:#173A2A;--on-ok:#06210F;
+    --warn:#F0B04A;--warn-soft:#3D2E10;--late:#FF7B72;--late-soft:#4A1E1C;--on-late:#2A0907;
+    --zb:#5CD0DA;--zb-soft:#123B3F;--zd:#F08DB8;--zd-soft:#44182F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1513;--surface:#182220;--surface-2:#212E2B;--fg:#E8EFEC;--muted:#93A39D;--line:#2B3A36;
+  --accent:#8AA0FF;--accent-fg:#0B1020;--accent-soft:#232C57;
+  --ok:#5DD39A;--ok-soft:#173A2A;--on-ok:#06210F;
+  --warn:#F0B04A;--warn-soft:#3D2E10;--late:#FF7B72;--late-soft:#4A1E1C;--on-late:#2A0907;
+  --zb:#5CD0DA;--zb-soft:#123B3F;--zd:#F08DB8;--zd-soft:#44182F;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 var(--f-body);
+  padding-block:4px 0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:600px;margin:0 auto;padding-bottom:120px}
+
+/* шапка */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:10px;padding-block:12px 10px}
+.ttl{flex:1;min-width:0}
+.bar h1{margin:0;font:600 22px/1.15 var(--f-body)}
+.h1s{font:500 18px/1 var(--f-body);color:var(--muted);margin-right:6px}
+.h1n{font:700 38px/1 var(--f-num);letter-spacing:.01em;overflow-wrap:anywhere}
+.sub{margin:2px 0 0;color:var(--muted);font-size:14px}
+.icon{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:inline-grid;place-items:center;cursor:pointer;padding:0;flex:none}
+.icon svg{width:22px;height:22px}
+.tog{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:500 13px/1 var(--f-body);cursor:pointer;flex:none}
+.tog svg{width:20px;height:20px}
+.tog[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+
+/* смахивание */
+.sw{position:relative;overflow:hidden;border-radius:14px}
+.sw-del{position:absolute;top:0;right:0;bottom:0;width:96px;border:0;background:var(--late);color:var(--on-late);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:600 13px/1 var(--f-body);cursor:pointer;visibility:hidden}
+.sw-del svg{width:22px;height:22px}
+.sw.open .sw-del,.sw.drag .sw-del{visibility:visible}
+.sw-fg{position:relative;touch-action:pan-y;-webkit-user-select:none;user-select:none;transition:transform .2s ease;will-change:transform}
+
+/* столы */
+.rows{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.rowc{display:flex;align-items:center;gap:14px;width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;text-align:left;cursor:pointer;min-width:0}
+.rowc.free{background:transparent;border-style:dashed;color:var(--muted);min-height:64px}
+.rowc.free svg{width:22px;height:22px;flex:none;color:var(--accent)}
+.rnum{font:700 44px/1 var(--f-num);min-width:2ch;text-align:center;flex:none;letter-spacing:.01em}
+.rmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.rtop{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rstat{display:flex;align-items:center;gap:8px;min-width:0}
+.tag{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;background:var(--surface-2);color:var(--muted);padding:2px 6px;border-radius:6px;flex:none}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font:500 13px/1.3 var(--f-body);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok);font-weight:600}
+.pill.live{font:600 19px/1.15 var(--f-num);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--accent);background:var(--accent-soft)}
+.pill.live[data-state="warn"]{background:var(--warn-soft);color:var(--warn)}
+.pill.live[data-state="late"]{background:var(--late-soft);color:var(--late)}
+.lbl{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.segs{display:flex;gap:3px;flex-wrap:wrap}
+.sg{display:block;width:14px;height:6px;border-radius:3px;background:var(--line)}
+.sg.served{background:var(--ok)}
+.sg.kitchen{background:var(--accent)}
+.sg.kitchen[data-state="warn"]{background:var(--warn)}
+.sg.kitchen[data-state="late"]{background:var(--late)}
+.hintline{margin:18px 0 0;text-align:center;font-size:13px;color:var(--muted)}
+
+/* цеха */
+.zone{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;vertical-align:2px;background:var(--surface-2);color:var(--muted)}
+.zone.z-bar{background:var(--zb-soft);color:var(--zb)}
+.zone.z-dessert{background:var(--zd-soft);color:var(--zd)}
+.zdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--muted);vertical-align:1px}
+.zdot.z-bar{background:var(--zb)}
+.zdot.z-dessert{background:var(--zd)}
+
+/* стол: сводка и блюда */
+.sumrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
+.sm{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.sm b{display:block;font:700 28px/1 var(--f-num);font-variant-numeric:tabular-nums}
+.sm span{font-size:12px;color:var(--muted)}
+.tnote{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--warn-soft);font-size:14px;overflow-wrap:anywhere}
+.group{margin-top:20px}
+.group .sw{margin-bottom:8px}
+.ghead{display:flex;align-items:center;gap:10px;margin-bottom:8px;min-height:36px}
+.ghead h2{margin:0;font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.gcount{font-size:13px;color:var(--muted);flex:1;min-width:0}
+.item{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.item[data-st="served"]{background:var(--bg);border-style:dashed}
+.item[data-st="served"] .iname{color:var(--muted)}
+.ibody{flex:1;min-width:0;text-align:left;background:none;border:0;padding:12px 8px 12px 14px;cursor:pointer;display:block}
+.iname{display:block;font-weight:600;font-size:17px;overflow-wrap:anywhere}
+.qty{font:700 21px/1 var(--f-num);color:var(--accent);margin-right:4px}
+.seat{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:12px;font-weight:500;vertical-align:2px}
+.inote{display:block;color:var(--muted);font-size:14px;margin-top:2px;overflow-wrap:anywhere}
+.istat{display:flex;align-items:baseline;gap:8px;margin-top:6px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.tm{font:600 26px/1 var(--f-num);font-variant-numeric:tabular-nums;color:var(--accent)}
+.tm[data-state="warn"]{color:var(--warn)}
+.tm[data-state="late"]{color:var(--late)}
+.st.ok{color:var(--ok);font-weight:600}
+.st.wait{color:var(--warn);font-weight:600}
+.prog{display:block;height:4px;background:var(--surface-2);border-radius:2px;margin-top:8px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);border-radius:2px}
+.prog i[data-state="warn"]{background:var(--warn)}
+.prog i[data-state="late"]{background:var(--late)}
+.act{flex:none;width:92px;border:0;border-left:1px solid var(--line);background:var(--accent-soft);color:var(--accent);font:600 13px/1.2 var(--f-body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:8px;border-radius:0 13px 13px 0}
+.act svg{width:22px;height:22px}
+.act.done{background:var(--ok);color:var(--on-ok);border-left-color:transparent}
+.act.undo{width:64px;background:transparent;color:var(--muted)}
+.act.later{background:transparent;color:var(--muted)}
+
+/* кнопки */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 18px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font:600 16px/1 var(--f-body);cursor:pointer}
+.btn svg{width:20px;height:20px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:var(--on-ok)}
+.btn.danger{color:var(--late);border-color:var(--late);background:transparent}
+.btn.wide{width:100%}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:10px}
+.textbtn{display:block;margin:20px auto 0;background:none;border:0;color:var(--accent);font:500 15px/1 var(--f-body);padding:12px;cursor:pointer}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;padding-top:28px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:linear-gradient(to bottom,transparent,var(--bg) 45%);pointer-events:none}
+.dock-in{max-width:600px;margin:0 auto;pointer-events:auto}
+.empty{margin-top:36px;padding:24px;border:1px dashed var(--line);border-radius:16px;text-align:center;color:var(--muted)}
+.empty h2{margin:0 0 6px;color:var(--fg);font:600 18px/1.3 var(--f-body)}
+.empty p{margin:0}
+
+/* закрытые */
+.cl{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.cl-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.cl-h b{font:700 28px/1 var(--f-num)}
+.cl-h span{color:var(--muted);font-size:14px}
+.cl-items{margin:8px 0 12px;color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+
+/* нижняя панель */
+#sheet[hidden]{display:none}
+.backdrop{position:fixed;inset:0;background:rgba(8,14,12,.55);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;margin:0 auto;max-width:600px;max-height:92vh;max-height:92dvh;overflow:auto;background:var(--surface);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;padding-top:16px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheet-h h2{margin:0;font:600 20px/1.2 var(--f-body)}
+.fld{display:block;margin-top:14px;min-width:0}
+.fld>span{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500}
+input[type="text"]{width:100%;min-height:50px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 14px;font:inherit;font-size:17px}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.step{display:flex;align-items:center;justify-content:space-between;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:3px}
+.step .icon{border:0;background:var(--surface);width:42px;height:42px}
+.step output{font:700 28px/1 var(--f-num);min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;margin-top:0}
+.chips.big{margin-top:14px}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font:500 15px/1 var(--f-body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.chips.big .chip{min-width:60px;min-height:60px;border-radius:16px;font:700 26px/1 var(--f-num);padding:0}
+#sugg .chip{max-width:100%;white-space:normal;text-align:left;padding:8px 14px;line-height:1.25}
+.chips.zones{margin-top:0}
+.chips.zones .chip{flex:1;min-width:0}
+.hint{font-size:13px;color:var(--muted)}
+p.hint{margin:8px 0 0}
+.hint.bad{color:var(--late)}
+.btn.off{opacity:.45}
+.actions{display:grid;gap:10px;margin-top:20px}
+.confirmbox{margin-top:16px;padding:12px;border-radius:12px;border:1px solid var(--late);background:var(--late-soft)}
+.confirmbox p{margin:0 0 10px;font-size:15px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);z-index:30;width:max-content;max-width:min(560px,calc(100% - 32px));display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;background:var(--fg);color:var(--bg);font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto;cursor:pointer}
+#toast.has-act{pointer-events:auto}
+.toast-act{flex:none;background:none;border:0;padding:6px 4px;color:var(--accent-soft);font:600 15px/1 var(--f-body);cursor:pointer;text-decoration:underline}
+@media (prefers-reduced-motion:reduce){#toast,.sw-fg{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+<div id="sheet" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='waiter-notes-v1';
+const HALL=10;
+const MAX_COURSE=6;
+const DEFAULT_COOK=15;
+const SW_W=96;
+const RANK={kitchen:0,new:1,served:2};
+const ZONES=[{id:'bar',name:'Бар'},{id:'kitchen',name:'Кухня'},{id:'dessert',name:'Десерт'}];
+const ZN={bar:'Бар',kitchen:'Кухня',dessert:'Десерт'};
+const ZORD={bar:0,kitchen:1,dessert:2};
+/* меню из таблицы: [цех, категория, название, минут, время указано в источнике] */
+const MENU=[["bar","Кофейные напитки","Американо",4,1],["bar","Кофейные напитки","Эспрессо",4,1],["bar","Кофейные напитки","Доппио",4,1],["bar","Кофейные напитки","Капучино",4,1],["bar","Кофейные напитки","Дабл капучино",4,1],["bar","Кофейные напитки","Латте",4,1],["bar","Кофейные напитки","Раф",4,1],["bar","Кофейные напитки","Флэт уайт",4,1],["bar","Кофейные напитки","Бамбл",4,1],["bar","Кофейные напитки","Эспрессо-тоник",4,1],["bar","Чайная карта","Эрл Грей",5,1],["bar","Чайная карта","Классический чёрный чай",5,1],["bar","Чайная карта","Фруктовый чёрный чай",5,1],["bar","Чайная карта","Ройбуш ванильный",5,1],["bar","Чайная карта","Зелёный чай липа-ромашка",5,1],["bar","Чайная карта","Зелёный чай Сенча",5,1],["bar","Чайная карта","Зелёный чай с жасмином",5,1],["bar","Чайная карта","Мыс целебных трав",5,1],["bar","Согревающие напитки","Какао",5,1],["bar","Согревающие напитки","Горячий шоколад",5,1],["bar","Согревающие напитки","Клубничный чай с мятой",5,1],["bar","Согревающие напитки","Масала",5,1],["bar","Согревающие напитки","Облепиха с мандарином",5,1],["bar","Согревающие напитки","Имбирный напиток",5,1],["bar","Согревающие напитки","Глинтвейн б/а",5,1],["bar","Согревающие напитки","Глинтвейн алкогольный",5,1],["bar","Лимонады и прохладные напитки","Клубника с мятой",5,1],["bar","Лимонады и прохладные напитки","Киви-лайм",5,1],["bar","Лимонады и прохладные напитки","Манго-маракуйя",5,1],["bar","Лимонады и прохладные напитки","Молочный коктейль (ванильный / клубничный / шоколадный)",5,1],["bar","Лимонады и прохладные напитки","Мохито безалкогольный",5,1],["bar","Лимонады и прохладные напитки","Мохито клубничный",5,1],["bar","Лимонады и прохладные напитки","Пино Колада безалкогольная",5,1],["bar","Лимонады и прохладные напитки","Пино Колада клубничная",5,1],["bar","Лимонады и прохладные напитки","Соки в ассортименте",5,1],["bar","Лимонады и прохладные напитки","Лимонады «Добрый»",5,1],["bar","Лимонады и прохладные напитки","Морс",5,1],["bar","Алкогольные коктейли","Мартини Фиеро и тоник",5,1],["bar","Алкогольные коктейли","Б-52",5,1],["bar","Алкогольные коктейли","Негрони (не классика)",5,1],["bar","Алкогольные коктейли","Белый русский",5,1],["bar","Алкогольные коктейли","Маргарита",5,1],["bar","Алкогольные коктейли","Маргарита клубничная",5,1],["bar","Алкогольные коктейли","Мохито",5,1],["bar","Алкогольные коктейли","Апероль шприц",5,1],["bar","Алкогольные коктейли","Пино Колада",5,1],["bar","Алкогольные коктейли","Лонг Айленд",5,1],["bar","Алкогольные коктейли","Оакхарт кола",5,1],["bar","Алкогольные коктейли","Лимончелло экзотик",5,1],["bar","Алкогольные коктейли","Май Тай Оакхарт",5,1],["bar","Алкогольные коктейли","Босфорд и тоник",5,1],["bar","Алкогольные коктейли","Дюарс кола",5,1],["bar","Пиво и сидр","Сидр (производство — Беларусь)",5,1],["bar","Пиво и сидр","Приматор светлый",5,1],["bar","Пиво и сидр","Приматор нефильтрованный",5,1],["bar","Пиво и сидр","Leffe светлое",5,1],["bar","Пиво и сидр","Leffe тёмное",5,1],["bar","Пиво и сидр","Сидр яблочный / вишнёвый",5,1],["bar","Пиво и сидр","Бакалар б/а пиво",5,1],["bar","Сезонные напитки · осень 2026","Чай бамбук-Юдзу",5,1],["bar","Сезонные напитки · осень 2026","Пино Колада персик",5,1],["bar","Сезонные напитки · осень 2026","Пино Колада персик алкогольная",5,1],["kitchen","Завтраки","Сэндвич",15,1],["kitchen","Завтраки","Фермерский завтрак",15,1],["kitchen","Завтраки","Чиабатта с лососем",15,1],["kitchen","Завтраки","Скрэмбл с креветками",15,1],["kitchen","Завтраки","Каша овсяная",15,1],["kitchen","Завтраки","Блинчики",15,1],["kitchen","Завтраки","Сырники",15,1],["kitchen","Завтраки","Венская вафля",15,1],["kitchen","Осеннее меню","Пряный тыквенный суп на кокосовом молоке",15,0],["kitchen","Осеннее меню","Густой и ароматный суп с белыми грибами",15,0],["kitchen","Осеннее меню","Салат с запечёной тыквой и сыром камамбер",15,0],["kitchen","Осеннее меню","Печёная свёкла с козьим сыром",15,0],["kitchen","Осеннее меню","Паста с лососем",15,0],["kitchen","Холодные закуски","Овощная нарезка",10,1],["kitchen","Холодные закуски","Сырная тарелка",10,1],["kitchen","Холодные закуски","Брускетта с томатами",13,1],["kitchen","Холодные закуски","Брускетта со с/с лососем",13,1],["kitchen","Холодные закуски","Брускетта с печёным перцем",13,1],["kitchen","Холодные закуски","Брускетта с копчёной уткой",13,1],["kitchen","Горячие закуски","Жульен грибной",20,1],["kitchen","Горячие закуски","Оладьи из цукини с лососем с/с",20,1],["kitchen","Горячие закуски","Бифф бургер с картошкой фри",20,1],["kitchen","Горячие закуски","Клаб бургер с коул слоу и картошкой фри",20,1],["kitchen","Горячие закуски","Шаверма с курицей",15,1],["kitchen","Салаты","Салат греческий",15,1],["kitchen","Салаты","Салат с печенью цыплёнка",15,1],["kitchen","Салаты","Салат с хрустящими баклажанами под соусом «Свит-чили»",15,1],["kitchen","Салаты","Цезарь с курицей",15,1],["kitchen","Салаты","Цезарь с креветкой",15,1],["kitchen","Салаты","Салат с морепродуктами",15,1],["kitchen","Салаты","Фреш салат с лососем с/с",15,1],["kitchen","Супы","Куриный суп",13,1],["kitchen","Супы","Грибной крем суп",13,1],["kitchen","Супы","Борщ традиционный",13,1],["kitchen","Супы","Уха из красной и белой рыбы (классическая / со сливками)",13,1],["kitchen","Супы","Солянка классическая",13,1],["kitchen","Супы","Том-ям с креветками и кальмаром",13,1],["kitchen","Рыба","Щучьи котлетки",18,1],["kitchen","Рыба","Запечённое филе трески",18,1],["kitchen","Рыба","Стейк из лосося",18,1],["kitchen","Рыба","Пельмени с лососем",18,1],["kitchen","Мясо","Куриное филе гриль",18,1],["kitchen","Мясо","Бефстроганов",18,1],["kitchen","Мясо","Бифштекс из говядины",20,1],["kitchen","Мясо","Стейк из говядины",20,1],["kitchen","Мясо","Свиные рёбра барбекю",20,1],["kitchen","Паста","Паста карбонара",15,1],["kitchen","Паста","Паста неро с морепродуктами в томатном соусе",15,1],["kitchen","Паста","Паста том ям",15,1],["kitchen","Паста","Паста с креветками",15,1],["kitchen","Пицца","Пицца «Маргарита»",20,1],["kitchen","Пицца","Пицца «Жульен»",20,1],["kitchen","Пицца","Пицца «Пепперони»",20,1],["kitchen","Пицца","Пицца «Четыре сыра»",20,1],["kitchen","Пицца","Пицца «Груша-горгонзола»",20,1],["kitchen","Пицца","Пицца с копчёной уткой",20,1],["kitchen","Выпечка","Булочки (белая и чёрная)",8,1],["kitchen","Выпечка","Булочки",8,1],["kitchen","Выпечка","Хлебная корзина (с паштетом из тунца)",8,1],["kitchen","Гарниры","Картофель фри",10,1],["kitchen","Гарниры","Картофель бейби",10,1],["kitchen","Гарниры","Рис отварной",10,1],["kitchen","Гарниры","Овощи гриль",15,1],["kitchen","Детское меню","Чикенбургер",20,1],["kitchen","Детское меню","Куриный суп (детский)",13,1],["kitchen","Детское меню","Наггетсы с фри",13,1],["kitchen","Детское меню","Куриные котлеты",18,1],["kitchen","Детское меню","Макарошки с сосисками",15,1],["kitchen","Детское меню","Овощной салат",10,1],["kitchen","Закуски к пиву","Сырные палочки",15,1],["kitchen","Закуски к пиву","Луковые кольца",15,1],["kitchen","Закуски к пиву","Гренки ржаные",15,1],["dessert","Десерты","Фондан шоколадный",10,1],["dessert","Десерты","Штрудель вишнёвый",10,1],["dessert","Десерты","Штрудель яблочный",10,1],["dessert","Десерты","Чизкейк Нью-Йорк",10,1],["dessert","Десерты","Чизкейк дубайский",10,1],["dessert","Десерты","Шарик мороженого",5,1]];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
+const pad=n=>String(n).padStart(2,'0');
+const plural=(n,f)=>{const a=Math.abs(n)%100,b=a%10;if(a>10&&a<20)return f[2];if(b>1&&b<5)return f[1];if(b===1)return f[0];return f[2];};
+const P_GUEST=['гость','гостя','гостей'],P_DISH=['блюдо','блюда','блюд'];
+const norm=s=>String(s||'').toLowerCase().replace(/ё/g,'е').trim();
+
+const svg=p=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+const ICON={
+  back:svg('<path d="M15 18l-6-6 6-6"/>'),
+  plus:svg('<path d="M12 5v14M5 12h14"/>'),
+  minus:svg('<path d="M5 12h14"/>'),
+  close:svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+  bell:svg('<path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 01-3.4 0"/>'),
+  sun:svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  check:svg('<path d="M20 6L9 17l-5-5"/>'),
+  send:svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  undo:svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/>'),
+  trash:svg('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/>'),
+  more:svg('<circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/>')
+};
+
+/* ---------- память блюд ---------- */
+const dishKey=n=>String(n).trim().toLowerCase();
+let S=null;
+const cookFor=name=>{const d=S.dishes[dishKey(name)];return d&&d.cook?d.cook:DEFAULT_COOK;};
+const zoneFor=name=>{const d=S.dishes[dishKey(name)];return d&&d.zone?d.zone:null;};
+function rememberAdd(name,zone){
+  const key=dishKey(name);
+  const d=S.dishes[key];
+  if(d){d.n=(d.n||0)+1;d.name=String(name).trim();}
+  else S.dishes[key]={name:String(name).trim(),cook:DEFAULT_COOK,zone:zone,n:1,k:0};
+}
+/* после выноса время готовки уточняется по факту */
+function learn(i){
+  if(i.learned||!i.sentAt||!i.servedAt)return;
+  const actual=Math.min(90,Math.max(1,Math.round((i.servedAt-i.sentAt)/60000)));
+  const key=dishKey(i.name);
+  const d=S.dishes[key];
+  if(!d){i.learned=true;return;}
+  if(d.cook&&actual<d.cook*0.4){i.learned=true;return;}
+  const w=Math.min(d.k||0,4);
+  d.cook=Math.max(1,Math.round(((d.cook||actual)*w+actual)/(w+1)));
+  d.k=(d.k||0)+1;
+  S.dishes[key]=d;
+  i.learned=true;
+}
+
+/* ---------- данные ---------- */
+function seed(){
+  const n=Date.now(),m=60000;
+  const it=(name,zone,qty,seat,course,note,cook,status,sent,served)=>({id:uid(),name,zone,qty,seat,course,note,cook,status,sentAt:sent?n-sent*m:null,servedAt:served?n-served*m:null,alerted:status==='served',learned:true});
+  const t={id:uid(),name:'3',guests:3,note:'Пример: удалите стол смахиванием влево, когда освоитесь',openedAt:n-35*m,closedAt:null,example:true,items:[
+    it('Лимонады «Добрый»','bar',2,0,1,'',5,'served',31,28),
+    it('Овощная нарезка','kitchen',1,1,1,'',10,'served',27,17),
+    it('Брускетта с томатами','kitchen',1,3,1,'без базилика',13,'kitchen',7,null),
+    it('Стейк из говядины','kitchen',1,2,2,'средней прожарки',20,'new',null,null),
+    it('Паста карбонара','kitchen',1,3,2,'',15,'new',null,null),
+    it('Фондан шоколадный','dessert',1,0,3,'',10,'new',null,null)
+  ]};
+  return {v:3,tables:[t],dishes:{},settings:{sound:true,wake:false}};
+}
+try{const raw=localStorage.getItem(KEY);if(raw)S=JSON.parse(raw);}catch(e){S=null;}
+if(!S||!Array.isArray(S.tables))S=seed();
+S.dishes=S.dishes||{};
+S.settings=Object.assign({sound:true,wake:false},S.settings||{});
+(function migrate(){
+  const OLD={'Напитки':1,'Закуски':1,'Супы':2,'Горячее':3,'Десерты':4};
+  /* меню: добавляем недостающие блюда; при первом запуске уточняем старые записи */
+  const first=S.menuMerged!==2;
+  MENU.forEach(m=>{
+    const key=dishKey(m[2]);
+    const k=(m[0]==='bar'||!m[4])?0:3;
+    const d=S.dishes[key];
+    if(!d)S.dishes[key]={name:m[2],cook:m[3],zone:m[0],cat:m[1],n:0,k:k};
+    else{
+      d.zone=m[0];
+      if(!d.cat)d.cat=m[1];
+      if(first){d.cook=m[3];d.k=k;}
+    }
+  });
+  S.menuMerged=2;
+  const mk=new Set(MENU.map(m=>dishKey(m[2])));
+  Object.keys(S.dishes).forEach(k=>{if(!mk.has(k))delete S.dishes[k];});
+  Object.keys(S.dishes).forEach(k=>{const d=S.dishes[k];if(d.k==null)d.k=1;if(!d.cook)d.cook=DEFAULT_COOK;if(!d.zone)d.zone='kitchen';delete d.course;});
+  S.tables.forEach(t=>{
+    t.name=String(t.name);
+    t.items=t.items||[];
+    t.items.forEach(i=>{
+      if(typeof i.course!=='number')i.course=OLD[i.course]||1;
+      if(i.learned===undefined)i.learned=i.status==='served';
+      {const d=S.dishes[dishKey(i.name)];i.zone=d&&d.zone?d.zone:(i.zone||'kitchen');}
+    });
+  });
+  const isSlot=t=>/^\d+$/.test(t.name)&&+t.name>=1&&+t.name<=HALL;
+  const taken=new Set(S.tables.filter(t=>!t.closedAt&&isSlot(t)).map(t=>+t.name));
+  S.tables.filter(t=>!t.closedAt&&!isSlot(t)).forEach(t=>{
+    let n=1;while(n<=HALL&&taken.has(n))n++;
+    if(n<=HALL){t.name=String(n);taken.add(n);}else t.closedAt=Date.now();
+  });
+})();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+save();
+
+const getTable=id=>S.tables.find(t=>t.id===id);
+const slotTable=n=>S.tables.find(t=>!t.closedAt&&t.name===String(n));
+const counts=t=>{const c={new:0,kitchen:0,served:0};t.items.forEach(i=>{c[i.status]++;});return c;};
+
+/* ---------- курсы по цехам ---------- */
+const courseList=t=>Array.from(new Set(t.items.map(i=>i.course))).sort((a,b)=>a-b);
+function prevCourse(t,c){const l=courseList(t);const k=l.indexOf(c);return k>0?l[k-1]:null;}
+/* курс, который этот блюдо ждёт: предыдущий курс того же цеха ещё не вынесен */
+function waitingOn(t,i){
+  const p=prevCourse(t,i.course);
+  if(p==null)return null;
+  const prev=t.items.filter(x=>x.course===p&&x.zone===i.zone);
+  return prev.length&&prev.some(x=>x.status!=='served')?p:null;
+}
+/* цех вынес весь свой курс: его следующий курс уходит на готовку сам. Другие цеха не трогаем. */
+function chainAfter(t,course,zone,now){
+  const l=courseList(t);const k=l.indexOf(course);
+  if(k<0||k>=l.length-1)return null;
+  const cur=t.items.filter(i=>i.course===course&&i.zone===zone);
+  if(!cur.length||cur.some(i=>i.status!=='served'))return null;
+  const nxt=t.items.filter(i=>i.course===l[k+1]&&i.zone===zone&&i.status==='new');
+  if(!nxt.length)return null;
+  nxt.forEach(i=>sendToKitchen(i,now));
+  return {course:l[k+1],zone,n:nxt.length};
+}
+function chainToast(res){
+  const list=res.filter(Boolean);
+  if(!list.length)return;
+  try{if(navigator.vibrate)navigator.vibrate([60,60,60]);}catch(e){}
+  toast(list.map(r=>'Курс '+r.course+' · '+ZN[r.zone]+': ушло на готовку '+r.n).join(' · '),4500);
+}
+
+/* ---------- время ---------- */
+function fmtClock(ms){const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=s%60;return h>0?h+':'+pad(m)+':'+pad(ss):pad(m)+':'+pad(ss);}
+function fmtSeated(ms){const min=Math.max(0,Math.floor(ms/60000));return min<60?min+' мин':Math.floor(min/60)+' ч '+pad(min%60)+' мин';}
+function fmtDur(ms){const m=Math.round(ms/60000);return m<1?'меньше минуты':m+' мин';}
+function fmtHM(ts){try{return new Date(ts).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+
+/* ---------- экраны ---------- */
+let curHash='';
+try{curHash=location.hash.replace(/^#/,'');}catch(e){}
+let route={v:'list'};
+let sheet=null;
+let confirmClear=false;
+
+function parse(h){
+  if(h==='closed')return {v:'closed'};
+  if(h.indexOf('t-')===0){const id=h.slice(2);const t=getTable(id);if(t&&!t.closedAt)return {v:'table',id};}
+  return {v:'list'};
+}
+function renderApp(){
+  route=parse(curHash);
+  $('#app').innerHTML=route.v==='table'?viewTable(route.id):route.v==='closed'?viewClosed():viewList();
+  tick();
+}
+function go(h){
+  curHash=h;confirmClear=false;
+  try{if(location.hash.replace(/^#/,'')!==h)location.hash=h;}catch(e){}
+  sheet=null;renderSheet();renderApp();window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',()=>{
+  let h='';try{h=location.hash.replace(/^#/,'');}catch(e){}
+  if(h!==curHash){curHash=h;confirmClear=false;sheet=null;renderSheet();renderApp();window.scrollTo(0,0);}
+});
+
+function statHTML(t){
+  const c=counts(t),total=t.items.length;
+  const kit=t.items.filter(i=>i.status==='kitchen').sort((a,b)=>(a.sentAt+a.cook*60000)-(b.sentAt+b.cook*60000));
+  if(!total)return '<span class="pill">Заказ пуст</span>';
+  if(kit.length){const k=kit[0];return '<span class="pill live" data-since="'+k.sentAt+'" data-target="'+k.cook+'">00:00</span><span class="lbl">'+esc(k.name)+(kit.length>1?' и ещё '+(kit.length-1):'')+'</span>';}
+  if(c.new)return '<span class="pill">Не отправлено: '+c.new+'</span>';
+  return '<span class="pill ok">Всё вынесено</span>';
+}
+function rowHTML(t){
+  const segs=t.items.slice().sort((a,b)=>RANK[a.status]-RANK[b.status]).map(i=>'<i class="sg '+i.status+'"'+(i.status==='kitchen'?' data-since="'+i.sentAt+'" data-target="'+i.cook+'" data-fmt="state"':'')+'></i>').join('');
+  return '<div class="sw"><button class="sw-del" data-act="swipe-del" data-kind="table" data-id="'+t.id+'" aria-label="Удалить стол '+esc(t.name)+'">'+ICON.trash+'<span>Удалить</span></button>'
+    +'<div class="rowc sw-fg" data-act="open" data-id="'+t.id+'" role="button" tabindex="0">'
+    +'<span class="rnum">'+esc(t.name)+'</span>'
+    +'<span class="rmid"><span class="rtop"><span>'+t.guests+' '+plural(t.guests,P_GUEST)+' · <span data-seated="'+t.openedAt+'"></span></span>'+(t.example?'<span class="tag">Пример</span>':'')+'</span>'
+    +'<span class="rstat">'+statHTML(t)+'</span><span class="segs">'+segs+'</span></span></div></div>';
+}
+function viewList(){
+  let busy=0,kit=0,rows='';
+  for(let n=1;n<=HALL;n++){
+    const t=slotTable(n);
+    if(t){busy++;kit+=t.items.filter(i=>i.status==='kitchen').length;rows+=rowHTML(t);}
+    else rows+='<button class="rowc free" data-act="free-table" data-n="'+n+'"><span class="rnum">'+n+'</span><span class="rmid"><span class="rtop">Свободен</span></span>'+ICON.plus+'</button>';
+  }
+  const sub='Занято '+busy+' из '+HALL+' · на готовке '+kit+' '+plural(kit,P_DISH);
+  const head='<header class="bar"><div class="ttl"><h1>Зал</h1><p class="sub">'+sub+'</p></div>'
+    +'<button class="tog" data-act="tog-sound" aria-pressed="'+S.settings.sound+'" title="Сигнал, когда время готовки вышло">'+ICON.bell+'Звук</button>'
+    +'<button class="tog" data-act="tog-wake" aria-pressed="'+S.settings.wake+'" title="Не давать экрану гаснуть">'+ICON.sun+'Экран</button></header>';
+  const cl=S.tables.filter(t=>t.closedAt).length;
+  const link=cl?'<button class="textbtn" data-act="go" data-h="closed">Закрытые столы · '+cl+'</button>':'';
+  return head+'<div class="rows">'+rows+'</div>'+(busy?'<p class="hintline">Смахните стол влево, чтобы удалить</p>':'')+link;
+}
+
+function viewTable(id){
+  const t=getTable(id),c=counts(t);
+  const head='<header class="bar"><button class="icon" data-act="back" aria-label="К залу">'+ICON.back+'</button>'
+    +'<div class="ttl"><h1><span class="h1s">Стол</span><span class="h1n">'+esc(t.name)+'</span></h1>'
+    +'<p class="sub">'+t.guests+' '+plural(t.guests,P_GUEST)+' · за столом <span data-seated="'+t.openedAt+'"></span></p></div>'
+    +'<button class="icon" data-act="table-menu" aria-label="Настройки стола">'+ICON.more+'</button></header>';
+  const sum='<div class="sumrow"><div class="sm"><b>'+c.new+'</b><span>не отправлено</span></div><div class="sm"><b>'+c.kitchen+'</b><span>на готовке</span></div><div class="sm"><b>'+c.served+'</b><span>вынесено</span></div></div>';
+  const note=t.note?'<p class="tnote">'+esc(t.note)+'</p>':'';
+  let groups='';
+  courseList(t).forEach(course=>{
+    const items=t.items.filter(i=>i.course===course);
+    const n=items.filter(i=>i.status==='new').length,k=items.filter(i=>i.status==='kitchen').length,s=items.filter(i=>i.status==='served').length;
+    let btn='';
+    if(n)btn='<button class="btn small" data-act="course-send" data-course="'+course+'">Отправить · '+n+'</button>';
+    else if(k)btn='<button class="btn small ok" data-act="course-serve" data-course="'+course+'">Вынесено · '+k+'</button>';
+    groups+='<section class="group"><div class="ghead"><h2>Курс '+course+'</h2><span class="gcount">'+s+' из '+items.length+' вынесено</span>'+btn+'</div>'
+      +items.slice().sort((a,b)=>(RANK[a.status]-RANK[b.status])||(ZORD[a.zone]-ZORD[b.zone])).map(i=>itemHTML(t,i)).join('')+'</section>';
+  });
+  if(!t.items.length)groups='<div class="empty"><h2>Заказ пуст</h2><p>Добавьте первое блюдо. Время готовки берётся из меню и уточняется после выноса. Каждый цех сам запускает свой следующий курс, когда вынесен предыдущий.</p></div>';
+  const hint=t.items.length?'<p class="hintline">Смахните блюдо влево, чтобы удалить</p>':'';
+  const dock='<div class="dock"><div class="dock-in"><button class="btn primary wide" data-act="add-item">'+ICON.plus+'Добавить блюдо</button></div></div>';
+  return head+sum+note+groups+hint+dock;
+}
+function itemHTML(t,i){
+  const qty=i.qty>1?'<span class="qty">'+i.qty+'×</span>':'';
+  const zone='<span class="zone z-'+i.zone+'">'+ZN[i.zone]+'</span>';
+  const seat=i.seat?'<span class="seat">Гость '+i.seat+'</span>':'';
+  const note=i.note?'<span class="inote">'+esc(i.note)+'</span>':'';
+  let stat='',prog='',btn='';
+  if(i.status==='new'){
+    const w=waitingOn(t,i);
+    if(w!=null){
+      stat='<span class="st wait">Ждёт курс '+w+'</span><span>стартует сам</span>';
+      btn='<button class="act later" data-act="advance" data-id="'+i.id+'" aria-label="Отправить раньше">'+ICON.send+'<span>Раньше</span></button>';
+    }else{
+      stat='<span>Записано</span><span>готовка около '+cookFor(i.name)+' мин</span>';
+      btn='<button class="act" data-act="advance" data-id="'+i.id+'">'+ICON.send+'<span>Отправить</span></button>';
+    }
+  }else if(i.status==='kitchen'){
+    stat='<span class="tm" data-since="'+i.sentAt+'" data-target="'+i.cook+'">00:00</span><span>из '+i.cook+' мин</span>';
+    prog='<span class="prog"><i data-since="'+i.sentAt+'" data-target="'+i.cook+'" data-fmt="bar"></i></span>';
+    btn='<button class="act done" data-act="advance" data-id="'+i.id+'">'+ICON.check+'<span>Вынесено</span></button>';
+  }else{
+    stat='<span class="st ok">Вынесено</span>'+(i.sentAt&&i.servedAt?'<span>готовка '+fmtDur(i.servedAt-i.sentAt)+'</span>':'');
+    btn='<button class="act undo" data-act="advance" data-id="'+i.id+'" aria-label="Вернуть назад">'+ICON.undo+'</button>';
+  }
+  return '<div class="sw"><button class="sw-del" data-act="swipe-del" data-kind="item" data-id="'+i.id+'" aria-label="Удалить блюдо">'+ICON.trash+'<span>Удалить</span></button>'
+    +'<div class="item sw-fg" data-st="'+i.status+'"><button class="ibody" data-act="edit-item" data-id="'+i.id+'">'
+    +'<span class="iname">'+qty+esc(i.name)+zone+seat+'</span>'+note+'<span class="istat">'+stat+'</span>'+prog+'</button>'+btn+'</div></div>';
+}
+
+function viewClosed(){
+  const ts=S.tables.filter(t=>t.closedAt).sort((a,b)=>b.closedAt-a.closedAt);
+  const head='<header class="bar"><button class="icon" data-act="back" aria-label="К залу">'+ICON.back+'</button><div class="ttl"><h1>Закрытые столы</h1><p class="sub">Хранятся на этом телефоне</p></div></header>';
+  let body;
+  if(ts.length){
+    body=ts.map(t=>{
+      const list=t.items.map(i=>(i.qty>1?i.qty+'× ':'')+i.name).join(', ')||'Без блюд';
+      return '<article class="cl"><div class="cl-h"><b>'+esc(t.name)+'</b><span>'+t.guests+' '+plural(t.guests,P_GUEST)+' · '+fmtSeated(t.closedAt-t.openedAt)+' · закрыт в '+fmtHM(t.closedAt)+'</span></div>'
+        +'<p class="cl-items">'+esc(list)+'</p><button class="btn small" data-act="reopen" data-id="'+t.id+'">Вернуть стол</button></article>';
+    }).join('');
+    body+=confirmClear
+      ?'<div class="confirmbox"><p>Удалить все закрытые столы? Это нельзя отменить.</p><div class="two"><button class="btn danger" data-act="clear-yes">Удалить</button><button class="btn" data-act="clear-no">Отмена</button></div></div>'
+      :'<button class="textbtn" data-act="clear-ask">Очистить список</button>';
+  }else body='<div class="empty"><h2>Пока пусто</h2><p>Сюда попадают столы после закрытия.</p></div>';
+  return head+body;
+}
+
+/* ---------- нижняя панель ---------- */
+function stepper(f,val){
+  return '<div class="step"><button type="button" class="icon" data-act="step" data-f="'+f+'" data-d="-1" aria-label="Меньше">'+ICON.minus+'</button><output>'+val+'</output><button type="button" class="icon" data-act="step" data-f="'+f+'" data-d="1" aria-label="Больше">'+ICON.plus+'</button></div>';
+}
+function chip(f,v,label,on){return '<button type="button" class="chip" data-act="chip" data-f="'+f+'" data-v="'+esc(v)+'" aria-pressed="'+on+'">'+esc(label)+'</button>';}
+function zonesHTML(){return ZONES.map(z=>chip('zone',z.id,z.name,sheet.zone===z.id)).join('');}
+function suggHTML(){
+  const q=norm(sheet.name);
+  let list=Object.values(S.dishes);
+  list=q?list.filter(d=>{const nm=norm(d.name);return q.split(/\s+/).every(w=>nm.indexOf(w)>=0);}):list.filter(d=>d.n>0);
+  list.sort((a,b)=>((b.n||0)-(a.n||0))||a.name.localeCompare(b.name,'ru'));
+  list=list.slice(0,q?12:8);
+  if(q&&list.length===1&&norm(list[0].name)===q)return '';
+  if(!list.length)return '';
+  return list.map(d=>'<button type="button" class="chip" data-act="pick-dish" data-k="'+esc(dishKey(d.name))+'"><span class="zdot z-'+d.zone+'"></span>'+esc(d.name)+'</button>').join('');
+}
+function cookHint(name){
+  const n=String(name||'').trim();
+  if(!n)return 'Начните вводить и выберите блюдо из меню';
+  const d=S.dishes[dishKey(n)];
+  if(d)return ZN[d.zone]+' · готовка около '+d.cook+' мин'+(d.k>0?', из памяти':', по меню');
+  return 'Такого блюда нет в меню. Выберите из подсказок.';
+}
+function confirmBox(kind,text,yesLabel){
+  if(sheet.confirm!==kind)return '';
+  return '<div class="confirmbox"><p>'+text+'</p><div class="two"><button class="btn danger" data-act="'+kind+'-yes">'+yesLabel+'</button><button class="btn" data-act="confirm" data-v="">Отмена</button></div></div>';
+}
+function seatSheet(){
+  let chips='';
+  for(let g=1;g<=12;g++)chips+='<button type="button" class="chip" data-act="open-slot" data-n="'+sheet.slot+'" data-g="'+g+'">'+g+'</button>';
+  return '<div class="sheet-h"><h2>Стол '+sheet.slot+': сколько гостей?</h2><button class="icon" data-act="sheet-close" aria-label="Закрыть">'+ICON.close+'</button></div>'
+    +'<div class="chips big">'+chips+'</div>'
+    +'<p class="hint">Нажмите на число, и стол откроется. Гостей можно поменять позже.</p>';
+}
+function tableSheet(){
+  const t=getTable(sheet.id);
+  const unserved=t?t.items.filter(i=>i.status!=='served').length:0;
+  let h='<div class="sheet-h"><h2>Стол '+esc(t.name)+'</h2><button class="icon" data-act="sheet-close" aria-label="Закрыть">'+ICON.close+'</button></div>'
+    +'<div class="fld"><span>Гостей</span>'+stepper('guests',sheet.guests)+'</div>'
+    +'<label class="fld"><span>Заметка к столу</span><input id="f-tnote" type="text" autocomplete="off" maxlength="120" value="'+esc(sheet.note)+'" placeholder="Аллергия на орехи, день рождения"></label>'
+    +'<div class="actions"><button class="btn primary wide" data-act="sheet-save">Сохранить</button>'
+    +'<button class="btn wide" data-act="confirm" data-v="close">Закрыть стол</button>'
+    +'<button class="btn danger wide" data-act="confirm" data-v="delete">Удалить стол</button></div>';
+  h+=confirmBox('close',unserved?'Не вынесено блюд: '+unserved+'. Всё равно закрыть стол?':'Закрыть стол '+esc(t.name)+'?','Закрыть стол');
+  h+=confirmBox('delete','Удалить стол вместе с заказом?','Удалить');
+  return h;
+}
+const dishOk=()=>!!S.dishes[dishKey(sheet.name.trim())];
+const hintBad=()=>!!sheet.name.trim()&&!dishOk();
+function itemSheet(){
+  const t=getTable(sheet.tableId);
+  const seats=Math.max(t.guests,sheet.seat);
+  let seatChips=chip('seat','0','Все',sheet.seat===0);
+  for(let s=1;s<=seats;s++)seatChips+=chip('seat',String(s),String(s),sheet.seat===s);
+  const maxC=Math.max(MAX_COURSE,sheet.course);
+  let courseChips='';
+  for(let c=1;c<=maxC;c++)courseChips+=chip('course',String(c),'Курс '+c,sheet.course===c);
+  const second=sheet.id
+    ?'<div class="fld"><span>Готовка, мин</span>'+stepper('cook',sheet.cook)+'</div>'
+    :'';
+  let h='<div class="sheet-h"><h2>'+(sheet.id?'Блюдо':'Новое блюдо')+'</h2><button class="icon" data-act="sheet-close" aria-label="Закрыть">'+ICON.close+'</button></div>'
+    +'<label class="fld"><span>Название</span><input id="f-name" type="text" autocomplete="off" maxlength="60" value="'+esc(sheet.name)+'" placeholder="Поиск по меню"></label>'
+    +'<div id="sugg" class="chips">'+suggHTML()+'</div>'
+    +'<p class="hint'+(hintBad()?' bad':'')+'" id="cookhint">'+esc(cookHint(sheet.name))+'</p>'
+        +'<div class="row2"><div class="fld"><span>Порций</span>'+stepper('qty',sheet.qty)+'</div>'+second+'</div>'
+    +'<div class="fld"><span>Курс</span><div class="chips scroll">'+courseChips+'</div></div>'
+    +'<div class="fld"><span>Гость</span><div class="chips scroll">'+seatChips+'</div></div>'
+    +'<label class="fld"><span>Комментарий</span><input id="f-note" type="text" autocomplete="off" maxlength="120" value="'+esc(sheet.note)+'" placeholder="Без лука, средней прожарки"></label>'
+    +'<div class="actions"><button class="btn primary wide'+(dishOk()?'':' off')+'" data-need-dish data-act="sheet-save">'+(sheet.id?'Сохранить':'Добавить')+'</button>';
+  if(sheet.id)h+='<button class="btn danger wide" data-act="confirm" data-v="delitem">Удалить блюдо</button>';
+  else h+='<button class="btn wide'+(dishOk()?'':' off')+'" data-need-dish data-act="sheet-save-more">Добавить и записать ещё</button>';
+  h+='</div>';
+  if(sheet.id)h+=confirmBox('delitem','Удалить это блюдо из заказа?','Удалить');
+  return h;
+}
+function renderSheet(){
+  const el=$('#sheet');
+  if(!sheet){el.hidden=true;el.innerHTML='';return;}
+  const old=el.querySelector('.sheet');const top=old?old.scrollTop:0;
+  el.hidden=false;
+  const inner=sheet.type==='seat'?seatSheet():sheet.type==='table'?tableSheet():itemSheet();
+  el.innerHTML='<div class="backdrop" data-act="sheet-close"></div><div class="sheet" role="dialog" aria-modal="true">'+inner+'</div>';
+  const nw=el.querySelector('.sheet');if(nw&&top)nw.scrollTop=top;
+}
+function syncSheet(){
+  if(!sheet)return;
+  const g=id=>{const e=document.getElementById(id);return e?e.value:null;};
+  if(sheet.type==='table'){const v=g('f-tnote');if(v!==null)sheet.note=v;}
+  else if(sheet.type==='item'){let v=g('f-name');if(v!==null)sheet.name=v;v=g('f-note');if(v!==null)sheet.note=v;}
+}
+function openSeatSheet(n){sheet={type:'seat',slot:n};renderSheet();}
+function openTableSheet(t){
+  sheet={type:'table',id:t.id,guests:t.guests,note:t.example?'':(t.note||''),confirm:''};
+  renderSheet();
+}
+function openItemSheet(i){
+  const t=getTable(route.id);
+  const last=t.items[t.items.length-1];
+  sheet=i
+    ?{type:'item',id:i.id,tableId:t.id,name:i.name,qty:i.qty,seat:i.seat,course:i.course,cook:i.cook,zone:i.zone,zoneSet:true,note:i.note||'',confirm:''}
+    :{type:'item',id:null,tableId:t.id,name:'',qty:1,seat:0,course:last?last.course:1,cook:DEFAULT_COOK,zone:'kitchen',zoneSet:false,note:'',confirm:''};
+  renderSheet();
+  if(!i)setTimeout(()=>{const e=$('#f-name');if(e)e.focus();},60);
+}
+
+/* ---------- действия ---------- */
+function openSlot(n,g){
+  if(slotTable(n)){toast('Стол '+n+' уже занят');sheet=null;renderSheet();renderApp();return;}
+  const t={id:uid(),name:String(n),guests:g,note:'',openedAt:Date.now(),closedAt:null,items:[]};
+  S.tables.push(t);save();
+  sheet=null;renderSheet();go('t-'+t.id);
+}
+function saveTable(){
+  syncSheet();
+  const t=getTable(sheet.id);if(!t)return;
+  t.guests=sheet.guests;
+  if(!(t.example&&!sheet.note.trim()))t.note=sheet.note.trim();
+  save();sheet=null;renderSheet();renderApp();
+}
+function saveItem(more){
+  syncSheet();
+  const dish=S.dishes[dishKey(sheet.name.trim())];
+  if(!dish){toast('Выберите блюдо из меню');const e=$('#f-name');if(e)e.focus();return;}
+  const name=dish.name;
+  const t=getTable(sheet.tableId);
+  const zone=dish.zone;
+  if(sheet.id){
+    const i=t.items.find(x=>x.id===sheet.id);
+    const cookChanged=sheet.cook!==i.cook;
+    Object.assign(i,{name,zone,qty:sheet.qty,seat:sheet.seat,course:sheet.course,cook:sheet.cook,note:sheet.note.trim()});
+    rememberAdd(name,zone);
+    if(cookChanged){const d=S.dishes[dishKey(name)];d.cook=sheet.cook;d.k=Math.max(d.k||0,1);}
+    if(i.status==='kitchen')i.alerted=Date.now()-i.sentAt>=i.cook*60000;
+  }else{
+    rememberAdd(name,zone);
+    t.items.push({id:uid(),name,zone,qty:sheet.qty,seat:sheet.seat,course:sheet.course,note:sheet.note.trim(),cook:cookFor(name),status:'new',sentAt:null,servedAt:null,alerted:false,learned:false});
+  }
+  save();
+  if(more){
+    sheet={type:'item',id:null,tableId:t.id,name:'',qty:1,seat:sheet.seat,course:sheet.course,cook:DEFAULT_COOK,zone:'kitchen',zoneSet:false,note:'',confirm:''};
+    renderSheet();toast('Добавлено: '+name);
+    const e=$('#f-name');if(e)e.focus();
+  }else{sheet=null;renderSheet();}
+  renderApp();
+}
+function sendToKitchen(i,now){i.status='kitchen';i.sentAt=now;i.servedAt=null;i.alerted=false;i.cook=cookFor(i.name);}
+function markServed(i,now){i.status='served';i.servedAt=now;learn(i);}
+function advance(id){
+  const t=getTable(route.id);if(!t)return;
+  const i=t.items.find(x=>x.id===id);if(!i)return;
+  const now=Date.now();
+  let res=[];
+  if(i.status==='new')sendToKitchen(i,now);
+  else if(i.status==='kitchen'){markServed(i,now);res.push(chainAfter(t,i.course,i.zone,now));}
+  else{i.status=i.sentAt?'kitchen':'new';i.servedAt=null;i.alerted=i.sentAt?(now-i.sentAt>=i.cook*60000):false;}
+  save();renderApp();
+  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+  chainToast(res);
+}
+function courseAct(course,from){
+  const t=getTable(route.id);if(!t)return;
+  const now=Date.now();
+  const zones=new Set();
+  t.items.forEach(i=>{
+    if(i.course!==course||i.status!==from)return;
+    if(from==='new')sendToKitchen(i,now);else{markServed(i,now);zones.add(i.zone);}
+  });
+  const res=[];
+  zones.forEach(z=>res.push(chainAfter(t,course,z,now)));
+  save();renderApp();
+  chainToast(res);
+}
+function delTable(id){
+  const idx=S.tables.findIndex(t=>t.id===id);if(idx<0)return;
+  const t=S.tables[idx];
+  S.tables.splice(idx,1);save();renderApp();
+  toast('Стол '+t.name+' удалён',4000,'Вернуть',()=>{
+    if(!t.closedAt&&slotTable(+t.name)){toast('Стол '+t.name+' уже занят');return;}
+    S.tables.splice(Math.min(idx,S.tables.length),0,t);save();renderApp();
+  });
+}
+function delItem(tableId,id){
+  const t=getTable(tableId);if(!t)return;
+  const idx=t.items.findIndex(x=>x.id===id);if(idx<0)return;
+  const it=t.items[idx];
+  t.items.splice(idx,1);save();renderApp();
+  toast('Удалено: '+it.name,4000,'Вернуть',()=>{
+    const tt=getTable(tableId);if(!tt)return;
+    tt.items.splice(Math.min(idx,tt.items.length),0,it);save();renderApp();
+  });
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  unlockAudio();
+  const a=b.dataset.act,id=b.dataset.id;
+  switch(a){
+    case 'open':go('t-'+id);break;
+    case 'back':go('');break;
+    case 'go':go(b.dataset.h);break;
+    case 'free-table':openSeatSheet(+b.dataset.n);break;
+    case 'open-slot':openSlot(+b.dataset.n,+b.dataset.g);break;
+    case 'table-menu':{const t=getTable(route.id);if(t)openTableSheet(t);break;}
+    case 'add-item':openItemSheet(null);break;
+    case 'edit-item':{const t=getTable(route.id);const i=t&&t.items.find(x=>x.id===id);if(i)openItemSheet(i);break;}
+    case 'advance':advance(id);break;
+    case 'course-send':courseAct(+b.dataset.course,'new');break;
+    case 'course-serve':courseAct(+b.dataset.course,'kitchen');break;
+    case 'swipe-del':if(b.dataset.kind==='table')delTable(id);else delItem(route.id,id);break;
+    case 'tog-sound':S.settings.sound=!S.settings.sound;save();renderApp();toast(S.settings.sound?'Звук включён':'Звук выключен');break;
+    case 'tog-wake':toggleWake();break;
+    case 'sheet-close':sheet=null;renderSheet();break;
+    case 'sheet-save':if(sheet)(sheet.type==='table'?saveTable():saveItem(false));break;
+    case 'sheet-save-more':saveItem(true);break;
+    case 'step':{
+      syncSheet();
+      const f=b.dataset.f,d=+b.dataset.d;
+      const lim={guests:[1,30],qty:[1,99],cook:[1,180]}[f];
+      sheet[f]=Math.min(lim[1],Math.max(lim[0],sheet[f]+d));
+      renderSheet();break;
+    }
+    case 'chip':{
+      syncSheet();
+      const f=b.dataset.f;
+      sheet[f]=+b.dataset.v;
+      renderSheet();break;
+    }
+    case 'pick-dish':{
+      syncSheet();
+      const d=S.dishes[b.dataset.k];
+      if(d)sheet.name=d.name;
+      renderSheet();break;
+    }
+    case 'confirm':syncSheet();sheet.confirm=b.dataset.v;renderSheet();break;
+    case 'close-yes':{
+      const t=getTable(sheet.id);t.closedAt=Date.now();save();
+      sheet=null;renderSheet();toast('Стол '+t.name+' закрыт');go('');break;
+    }
+    case 'delete-yes':{
+      const sid=sheet.id;sheet=null;renderSheet();go('');delTable(sid);break;
+    }
+    case 'delitem-yes':{
+      const tid=sheet.tableId,iid=sheet.id;sheet=null;renderSheet();delItem(tid,iid);break;
+    }
+    case 'reopen':{
+      const t=getTable(id);
+      if(t){
+        if(slotTable(+t.name)){toast('Стол '+t.name+' сейчас занят');break;}
+        t.closedAt=null;save();toast('Стол '+t.name+' снова в зале');renderApp();
+      }
+      break;
+    }
+    case 'clear-ask':confirmClear=true;renderApp();break;
+    case 'clear-no':confirmClear=false;renderApp();break;
+    case 'clear-yes':S.tables=S.tables.filter(t=>!t.closedAt);confirmClear=false;save();renderApp();break;
+  }
+});
+document.addEventListener('input',e=>{
+  if(sheet&&sheet.type==='item'&&e.target.id==='f-name'){
+    sheet.name=e.target.value;
+    const s=$('#sugg');if(s)s.innerHTML=suggHTML();
+    const h=$('#cookhint');if(h){h.textContent=cookHint(sheet.name);h.classList.toggle('bad',hintBad());}
+    const ok=dishOk();document.querySelectorAll('[data-need-dish]').forEach(b=>b.classList.toggle('off',!ok));
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(sheet){
+    if(e.key==='Escape'){sheet=null;renderSheet();return;}
+    if(e.key==='Enter'&&e.target&&e.target.tagName==='INPUT'){
+      e.preventDefault();
+      if(sheet.type==='table')saveTable();else if(sheet.type==='item')saveItem(false);
+    }
+    return;
+  }
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.getAttribute&&e.target.getAttribute('role')==='button'){
+    e.preventDefault();e.target.click();
+  }
+});
+
+/* ---------- смахивание влево ---------- */
+let sw=null,swallow=false,swTimer=null;
+function closeSwipes(except){
+  document.querySelectorAll('.sw.open').forEach(w=>{
+    if(except&&w===except)return;
+    w.classList.remove('open');
+    const fg=w.querySelector('.sw-fg');
+    if(fg){fg.style.transition='';fg.style.transform='';}
+    setTimeout(()=>w.classList.remove('drag'),220);
+  });
+}
+document.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.sw-del')){sw=null;return;}
+  const fg=e.target.closest('.sw-fg');
+  closeSwipes(fg?fg.parentElement:null);
+  if(!fg||(e.pointerType==='mouse'&&e.button!==0)){sw=null;return;}
+  const wrap=fg.parentElement;
+  sw={wrap,fg,x0:e.clientX,y0:e.clientY,base:wrap.classList.contains('open')?-SW_W:0,x:0,mode:null,id:e.pointerId};
+});
+document.addEventListener('pointermove',e=>{
+  if(!sw||e.pointerId!==sw.id)return;
+  const dx=e.clientX-sw.x0,dy=e.clientY-sw.y0;
+  if(sw.mode===null){
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.3){sw.mode='h';sw.wrap.classList.add('drag');sw.fg.style.transition='none';}
+    else if(Math.abs(dy)>8){sw=null;return;}
+    else return;
+  }
+  sw.x=Math.max(-SW_W-20,Math.min(0,sw.base+dx));
+  sw.fg.style.transform='translateX('+sw.x+'px)';
+});
+function endSwipe(e){
+  if(!sw||e.pointerId!==sw.id)return;
+  const s=sw;sw=null;
+  s.fg.style.transition='';
+  if(s.mode==='h'){
+    const open=s.x<-SW_W*0.45;
+    s.fg.style.transform=open?'translateX(-'+SW_W+'px)':'';
+    s.wrap.classList.toggle('open',open);
+    if(!open)setTimeout(()=>s.wrap.classList.remove('drag'),220);
+    swallow=true;clearTimeout(swTimer);swTimer=setTimeout(()=>{swallow=false;},350);
+  }else if(e.type==='pointerup'&&s.wrap.classList.contains('open')){
+    closeSwipes(null);
+    swallow=true;clearTimeout(swTimer);swTimer=setTimeout(()=>{swallow=false;},350);
+  }
+}
+document.addEventListener('pointerup',endSwipe);
+document.addEventListener('pointercancel',endSwipe);
+document.addEventListener('click',e=>{
+  if(swallow){e.stopPropagation();e.preventDefault();swallow=false;}
+},true);
+
+/* ---------- звук, экран, уведомления на странице ---------- */
+let ac=null;
+function unlockAudio(){
+  try{
+    if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C();}
+    if(ac&&ac.state==='suspended')ac.resume();
+  }catch(e){}
+}
+document.addEventListener('pointerdown',unlockAudio);
+function beep(){
+  try{
+    if(!ac)return;
+    const t=ac.currentTime;
+    [0,0.24].forEach((d,k)=>{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type='sine';o.frequency.value=k?1175:880;
+      g.gain.setValueAtTime(0.0001,t+d);
+      g.gain.exponentialRampToValueAtTime(0.3,t+d+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.2);
+      o.connect(g);g.connect(ac.destination);o.start(t+d);o.stop(t+d+0.22);
+    });
+  }catch(e){}
+}
+let wl=null;
+async function setWake(on){
+  try{
+    if(on){
+      if(!('wakeLock' in navigator))return false;
+      wl=await navigator.wakeLock.request('screen');
+      wl.addEventListener('release',()=>{wl=null;});
+      return true;
+    }
+    if(wl){await wl.release();wl=null;}
+    return true;
+  }catch(e){wl=null;return false;}
+}
+async function toggleWake(){
+  const want=!S.settings.wake;
+  if(want){
+    if(!('wakeLock' in navigator)){toast('Этот браузер не умеет держать экран включённым');return;}
+    const ok=await setWake(true);
+    if(!ok){toast('Не удалось удержать экран включённым');return;}
+  }else await setWake(false);
+  S.settings.wake=want;save();renderApp();
+  toast(want?'Экран не будет гаснуть, пока страница открыта':'Экран гаснет как обычно');
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&S.settings.wake&&!wl)setWake(true);
+});
+let tt=null;
+function toast(m,ms,actLabel,actFn){
+  const el=$('#toast');
+  el.textContent='';
+  const s=document.createElement('span');s.textContent=m;el.appendChild(s);
+  if(actLabel){
+    const b=document.createElement('button');
+    b.type='button';b.className='toast-act';b.textContent=actLabel;
+    b.addEventListener('click',ev=>{ev.stopPropagation();el.classList.remove('on','has-act');clearTimeout(tt);actFn();});
+    el.appendChild(b);
+  }
+  el.classList.toggle('has-act',!!actLabel);
+  el.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on','has-act'),ms||1800);
+}
+
+$('#toast').addEventListener('click',()=>{const el=$('#toast');el.classList.remove('on','has-act');clearTimeout(tt);});
+
+/* ---------- таймеры ---------- */
+function checkAlerts(now){
+  const msgs=[];
+  S.tables.forEach(t=>{
+    if(t.closedAt)return;
+    t.items.forEach(i=>{
+      if(i.status==='kitchen'&&!i.alerted&&now-i.sentAt>=i.cook*60000){i.alerted=true;msgs.push('Стол '+t.name+': '+i.name);}
+    });
+  });
+  if(!msgs.length)return;
+  save();
+  if(S.settings.sound)beep();
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
+  toast(msgs.slice(0,2).join(' · ')+(msgs.length>2?' и ещё '+(msgs.length-2):'')+': пора забирать',4500);
+}
+function tick(){
+  const now=Date.now();
+  document.querySelectorAll('[data-since]').forEach(el=>{
+    const ms=Math.max(0,now-(+el.dataset.since));
+    const tgt=(+el.dataset.target||0)*60000;
+    const r=tgt?ms/tgt:0;
+    el.dataset.state=r>=1?'late':r>=0.8?'warn':'ok';
+    const f=el.dataset.fmt;
+    if(f==='bar')el.style.width=Math.min(100,r*100)+'%';
+    else if(f!=='state')el.textContent=fmtClock(ms);
+  });
+  document.querySelectorAll('[data-seated]').forEach(el=>{el.textContent=fmtSeated(now-(+el.dataset.seated));});
+  checkAlerts(now);
+}
+
+renderApp();
+setInterval(tick,1000);
+if(S.settings.wake)setWake(true);
+})();
+</script>
+<script>
+if('serviceWorker' in navigator&&location.protocol!=='file:'){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+}
+</script>
+</body>
+</html>
