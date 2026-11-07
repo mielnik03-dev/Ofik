@@ -98,7 +98,9 @@ input{font:inherit}
 .sw{position:relative;overflow:hidden;border-radius:14px}
 .sw-del{position:absolute;top:0;right:0;bottom:0;width:96px;border:0;background:var(--late);color:var(--on-late);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:600 13px/1 var(--f-body);cursor:pointer;visibility:hidden}
 .sw-del svg{width:22px;height:22px}
-.sw.open .sw-del,.sw.drag .sw-del{visibility:visible}
+.sw-cm{position:absolute;top:0;left:0;bottom:0;width:96px;border:0;background:var(--accent);color:var(--accent-fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:600 12px/1 var(--f-body);cursor:pointer;visibility:hidden}
+.sw-cm svg{width:22px;height:22px}
+.sw.open .sw-del,.sw.drag .sw-del,.sw.drag .sw-cm{visibility:visible}
 .sw-fg{position:relative;touch-action:pan-y;-webkit-user-select:none;user-select:none;transition:transform .2s ease;will-change:transform}
 
 /* зал */
@@ -189,7 +191,7 @@ input{font:inherit}
 .cl-items{margin:8px 0 12px;color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 
 /* панель меню */
-.mp{position:fixed;left:0;right:0;bottom:var(--kb,0px);z-index:6;max-width:640px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;box-shadow:var(--shadow);border:1px solid var(--line);border-bottom:0;padding:10px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.mp{position:fixed;left:0;right:0;bottom:var(--kb,0px);z-index:6;max-width:640px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;box-shadow:var(--shadow);border:1px solid var(--line);border-bottom:0;padding:8px 12px calc(6px + env(safe-area-inset-bottom,0px))}
 .kb .mp{padding-bottom:8px}
 .mp-bar{display:flex;gap:8px;align-items:center}
 .search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--surface-2);border-radius:12px;padding:0 10px;min-height:44px;color:var(--muted)}
@@ -202,19 +204,23 @@ input{font:inherit}
 .mp-t{flex:none;min-height:44px;padding:0 14px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-fg);font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .mp-t svg{width:20px;height:20px}
 .mp-body{display:none}
-.mp.open .mp-body{display:flex;flex-direction:column;margin-top:10px;height:min(56vh,calc(var(--vvh,100vh) - 230px));height:min(56dvh,calc(var(--vvh,100dvh) - 230px));min-height:180px}
+.mp.open{display:flex;flex-direction:column;height:min(38vh,calc(var(--vvh,100vh) - 110px));height:min(38dvh,calc(var(--vvh,100dvh) - 110px));min-height:250px}
+.mp.open .mp-body{display:flex;flex-direction:column;flex:1;min-height:0;margin-top:8px}
+.mp-c{flex:none;min-height:44px;padding:0 8px 0 12px;border-radius:12px;border:0;background:var(--surface-2);font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:2px;cursor:pointer;white-space:nowrap}
+.mp-c svg{width:16px;height:16px;color:var(--muted)}
+.mp-t.icononly{padding:0;width:44px;justify-content:center}
 .mp-course{display:flex;gap:6px;align-items:center;overflow-x:auto;padding-bottom:8px;flex:none}
 .mp-course .l2{font-size:13px;color:var(--muted);margin-right:2px;flex:none}
 .mp-course .chip{min-height:34px;padding:0 12px;font-size:14px}
 #mp-nav{flex:none}
-.seg{display:flex;background:var(--surface-2);border-radius:10px;padding:2px;gap:2px;margin-bottom:8px}
-.seg button{flex:1;min-height:34px;border:0;background:none;border-radius:8px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
+.seg{display:flex;background:var(--surface-2);border-radius:10px;padding:2px;gap:2px;margin-bottom:6px}
+.seg button{flex:1;min-height:30px;border:0;background:none;border-radius:8px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
 .seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .back{display:flex;align-items:center;gap:2px;min-height:36px;border:0;background:none;color:var(--accent);font-weight:600;font-size:16px;padding:0 0 4px;cursor:pointer;text-align:left}
 .back svg{width:20px;height:20px;flex:none}
 .mp-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.cat{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:4px;min-height:64px;padding:10px 12px;border-radius:12px;border:0;background:var(--surface-2);text-align:left;font-weight:600;font-size:15px;cursor:pointer;overflow-wrap:anywhere;min-width:0}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-bottom:6px}
+.cat{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:6px;min-height:52px;padding:8px 12px;border-radius:12px;border:0;background:var(--surface-2);text-align:left;font-weight:600;font-size:15px;cursor:pointer;overflow-wrap:anywhere;min-width:0}
 .cat small{color:var(--muted);font-weight:500;font-size:13px}
 .dish{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:8px 2px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;cursor:pointer}
 .dmain{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -224,6 +230,16 @@ input{font:inherit}
 .dplus{color:var(--accent);flex:none;display:grid}
 .dplus svg{width:24px;height:24px}
 .none{padding:20px 4px;color:var(--muted);text-align:center}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding-bottom:6px}
+.tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:4px;min-height:60px;padding:8px 6px 7px 11px;border:0;border-radius:12px;background:var(--surface-2);text-align:left;cursor:pointer;overflow:hidden;min-width:0}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--muted)}
+.tile.z-bar::before{background:var(--zb)}
+.tile.z-dessert::before{background:var(--zd)}
+.tile:active{background:var(--accent-soft)}
+.tn{font-weight:600;font-size:12.5px;line-height:1.2;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
+.tile:has(.tq) .tn{padding-right:18px}
+.tm2{font-size:10.5px;color:var(--muted)}
+.tq{position:absolute;top:6px;right:6px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--accent-fg);font:700 13px/22px var(--f-num);text-align:center}
 
 /* нижняя панель-лист */
 #sheet[hidden]{display:none}
@@ -299,6 +315,7 @@ const ICON={
   undo:svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/>'),
   trash:svg('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/>'),
   more:svg('<circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/>'),
+  comment:svg('<path d="M4 5h16v11H9l-5 4V5z"/><path d="M8.5 9h7M8.5 12h4"/>'),
   search:svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
   chevd:svg('<path d="M6 9l6 6 6-6"/>'),
   help:svg('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.6a2.6 2.6 0 015.1.6c0 1.7-2.6 2.1-2.6 3.8M12 17.2h.01"/>'),
@@ -349,7 +366,7 @@ S.settings=Object.assign({sound:true,wake:false},S.settings||{});
     if(!d)S.dishes[key]={name:m[2],cook:m[3],zone:m[0],cat:m[1],n:0,k:k};
     else{
       d.zone=m[0];d.cat=m[1];
-      if(first){d.cook=m[3];d.k=k;}
+      d.cook=m[3];
     }
   });
   S.menuMerged=2;
@@ -526,7 +543,7 @@ function orderHTML(t){
     groups+='<section class="group"><div class="ghead"><h2>Курс '+course+'</h2><span class="gcount">'+s+' из '+items.length+' вынесено</span>'+btn+'</div>'
       +items.slice().sort((a,b)=>(RANK[a.status]-RANK[b.status])||(ZORD[a.zone]-ZORD[b.zone])).map(i=>itemHTML(t,i)).join('')+'</section>';
   });
-  return note+groups+'<p class="hintline">Нажмите на блюдо, чтобы изменить. Смахните влево, чтобы удалить.</p>';
+  return note+groups+'<p class="hintline">Вправо: комментарий. Влево: удалить.</p>';
 }
 function itemHTML(t,i){
   const qty=i.qty>1?'<span class="qty">'+i.qty+'×</span>':'';
@@ -543,7 +560,7 @@ function itemHTML(t,i){
       stat=chip+'<span class="st wait">Ждёт курс '+w+', стартует сам</span>';
       btn='<button class="act later" data-act="advance" data-id="'+i.id+'" aria-label="Отправить раньше">'+ICON.send+'<span>Раньше</span></button>';
     }else{
-      stat=chip+'<span>около '+cookFor(i.name)+' мин</span>';
+      stat=chip+'<span>'+cookFor(i.name)+' мин</span>';
       btn='<button class="act" data-act="advance" data-id="'+i.id+'">'+ICON.send+'<span>Отправить</span></button>';
     }
   }else if(i.status==='kitchen'){
@@ -554,7 +571,7 @@ function itemHTML(t,i){
     stat=chip+'<span class="st ok">Вынесено</span>'+(i.sentAt&&i.servedAt?'<span>готовка '+fmtDur(i.servedAt-i.sentAt)+'</span>':'');
     btn='<button class="act undo" data-act="advance" data-id="'+i.id+'" aria-label="Вернуть назад">'+ICON.undo+'</button>';
   }
-  return '<div class="sw" data-iid="'+i.id+'"><button class="sw-del" data-act="swipe-del" data-kind="item" data-id="'+i.id+'" aria-label="Удалить блюдо">'+ICON.trash+'<span>Удалить</span></button>'
+  return '<div class="sw" data-iid="'+i.id+'"><button class="sw-cm" data-act="swipe-comment" data-id="'+i.id+'" aria-label="Комментарий">'+ICON.comment+'<span>Комментарий</span></button><button class="sw-del" data-act="swipe-del" data-kind="item" data-id="'+i.id+'" aria-label="Удалить блюдо">'+ICON.trash+'<span>Удалить</span></button>'
     +'<div class="item sw-fg" data-st="'+i.status+'"><div class="ibody" data-act="edit-item" data-id="'+i.id+'" role="button" tabindex="0">'
     +'<span class="iname">'+qty+esc(i.name)+zone+seat+'</span>'+note+'<span class="istat">'+stat+'</span>'+prog+'</div>'+btn+'</div></div>';
 }
@@ -581,13 +598,17 @@ function panelHTML(){
   return '<div class="mp" id="mp"><div class="mp-bar"><label class="search">'+ICON.search
     +'<input id="mp-q" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Поиск по меню" value="'+esc(ui.q)+'">'
     +'<button type="button" class="sclear" data-act="mp-clear" aria-label="Очистить" hidden>'+ICON.clearx+'</button></label>'
+    +'<button type="button" class="mp-c" id="mp-c" data-act="mp-course-pick" aria-label="В какой курс добавлять"></button>'
     +'<button type="button" class="mp-t" id="mp-toggle" data-act="mp-toggle"></button></div>'
-    +'<div class="mp-body"><div class="mp-course" id="mp-course"></div><div id="mp-nav"></div><div class="mp-scroll" id="mp-scroll"></div></div></div>';
+    +'<div class="mp-body"><div id="mp-nav"></div><div class="mp-scroll" id="mp-scroll"></div></div></div>';
 }
 function applyMp(){
   const mp=$('#mp');if(!mp)return;
   mp.classList.toggle('open',ui.open);
-  $('#mp-toggle').innerHTML=ui.open?ICON.chevd+'<span>Свернуть</span>':ICON.grid+'<span>Меню</span>';
+  const tg=$('#mp-toggle');
+  tg.innerHTML=ui.open?ICON.chevd:ICON.grid+'<span>Меню</span>';
+  tg.classList.toggle('icononly',ui.open);
+  tg.setAttribute('aria-label',ui.open?'Свернуть меню':'Открыть меню');
   const c=mp.querySelector('.sclear');if(c)c.hidden=!ui.q;
   renderMpBody();
 }
@@ -602,26 +623,23 @@ function watchMp(){
   upd();
   if(window.ResizeObserver){mpRO=new ResizeObserver(upd);mpRO.observe(mp);}
 }
-function dishRow(d,t,showCat){
+function dishRow(d,t){
   const n=qtyIn(t,d.name);
-  return '<button type="button" class="dish" data-act="add-dish" data-k="'+esc(dishKey(d.name))+'"><span class="dmain"><span class="dn"><i class="zdot z-'+d.zone+'"></i>'+esc(d.name)+'</span>'
-    +'<span class="dm">'+(showCat?esc(d.cat||ZN[d.zone])+' · ':'')+'около '+d.cook+' мин</span></span>'
-    +(n?'<span class="dq">×'+n+'</span>':'')+'<span class="dplus">'+ICON.plus+'</span></button>';
+  return '<button type="button" class="tile z-'+d.zone+'" data-act="add-dish" data-k="'+esc(dishKey(d.name))+'"><span class="tn">'+esc(d.name)+'</span><span class="tm2">'+d.cook+' мин</span>'
+    +(n?'<span class="tq">'+n+'</span>':'')+'</button>';
 }
 function renderMpBody(){
   const mp=$('#mp');if(!mp)return;
   const t=getTable(route.id);if(!t)return;
   const cur=t.course||1;
-  let cc='<span class="l2">Курс</span>';
-  for(let c=1;c<=Math.max(MAX_COURSE,cur);c++)cc+='<button type="button" class="chip" data-act="mp-course" data-c="'+c+'" aria-pressed="'+(c===cur)+'">'+c+'</button>';
-  $('#mp-course').innerHTML=cc;
+  const mc=$('#mp-c');if(mc)mc.innerHTML='Курс '+cur+ICON.chevd;
   const q=norm(ui.q);
   let nav='',body='';
   if(q){
     const words=q.split(/\s+/);
     const list=Object.values(S.dishes).filter(d=>{const nm=norm(d.name);return words.every(w=>nm.indexOf(w)>=0);})
       .sort((a,b)=>((b.n||0)-(a.n||0))||a.name.localeCompare(b.name,'ru')).slice(0,40);
-    body=list.length?list.map(d=>dishRow(d,t,true)).join(''):'<p class="none">Такого блюда нет в меню</p>';
+    body=list.length?'<div class="tiles">'+list.map(d=>dishRow(d,t)).join('')+'</div>':'<p class="none">Такого блюда нет в меню</p>';
   }else{
     nav='<div class="seg">'+ZONES.map(z=>'<button type="button" class="'+(ui.zone===z.id?'on':'')+'" data-act="mp-zone" data-z="'+z.id+'">'+z.name+'</button>').join('')+'</div>';
     const cats=CATS[ui.zone]||[];
@@ -631,7 +649,7 @@ function renderMpBody(){
     }else{
       const c=cats[ui.cat];
       nav+='<button type="button" class="back" data-act="mp-back">'+ICON.back+'<span>'+esc(c.name)+'</span></button>';
-      body=c.keys.map(k=>S.dishes[k]).filter(Boolean).map(d=>dishRow(d,t,false)).join('');
+      body='<div class="tiles">'+c.keys.map(k=>S.dishes[k]).filter(Boolean).map(d=>dishRow(d,t)).join('')+'</div>';
     }
   }
   $('#mp-nav').innerHTML=nav;
@@ -697,9 +715,9 @@ function itemSheet(){
   const isNew=sheet.status==='new';
   let courseChips='';
   for(let c=1;c<=Math.max(MAX_COURSE,sheet.course);c++)courseChips+=chip('course',String(c),'Курс '+c,sheet.course===c);
-  const cookFld=sheet.status!=='served'?'<div class="fld"><span>Готовка, мин</span>'+stepper('cook',sheet.cook)+'</div>':'';
   let h='<div class="sheet-h"><h2>'+esc(sheet.name)+'</h2>'+closeBtn+'</div>'
-    +'<div class="row2"><div class="fld"><span>Порций</span>'+stepper('qty',sheet.qty)+'</div>'+cookFld+'</div>'
+    +'<div class="fld"><span>Порций</span>'+stepper('qty',sheet.qty)+'</div>'
+    +'<p class="hint">Время готовки по норме: '+cookFor(sheet.name)+' мин</p>'
     +(isNew?'<div class="fld"><span>Курс</span><div class="chips scroll">'+courseChips+'</div></div>':'')
     +'<div class="fld"><span>Гость</span><div class="chips scroll">'+seatChips+'</div></div>'
     +'<label class="fld"><span>Комментарий</span><input id="f-note" type="text" autocomplete="off" maxlength="120" value="'+esc(sheet.note)+'" placeholder="Без лука, средней прожарки"></label>'
@@ -720,19 +738,33 @@ function guideSheet(){
     +'<ol class="guide">'
     +'<li><b>Стол.</b> Нажмите на свободный стол и выберите число гостей.</li>'
     +'<li><b>Заказ.</b> Внизу «Меню»: поиск или цех, категория, блюдо. Нажатие на блюдо добавляет его в заказ. Над списком выберите курс, в который оно попадёт.</li>'
-    +'<li><b>Правка.</b> Нажмите на блюдо: порции, гость, комментарий. Метка «Курс» на блюде меняет курс.</li>'
+    +'<li><b>Правка.</b> Нажмите на блюдо: порции, гость, комментарий. Смахните блюдо вправо, чтобы сразу написать комментарий. Метка «Курс» на блюде меняет курс.</li>'
     +'<li><b>Готовка.</b> «Отправить» запускает таймер, «Вынесено» останавливает его.</li>'
     +'<li><b>Курсы.</b> Первый курс вы отправляете сами. Дальше каждый цех сам запускает свой следующий курс, когда вынес предыдущий. Другие цеха не трогаются.</li>'
     +'<li><b>Стол.</b> Кнопка с тремя точками: пересадить, закрыть, удалить. Блюдо или стол смахните влево, чтобы удалить.</li>'
     +'<li><b>Сигнал.</b> Колокольчик включает звук и вибрацию, когда время готовки вышло. Солнце не даёт экрану гаснуть.</li>'
     +'</ol>';
 }
+function commentSheet(){
+  const t=getTable(sheet.tableId);const i=t&&t.items.find(x=>x.id===sheet.id);
+  if(!i)return '';
+  return '<div class="sheet-h"><h2>Комментарий</h2>'+closeBtn+'</div><p class="hint">'+esc(i.name)+'</p>'
+    +'<label class="fld"><input id="f-cm" type="text" autocomplete="off" maxlength="120" value="'+esc(sheet.note)+'" placeholder="Без лука, средней прожарки"></label>'
+    +'<div class="actions"><button class="btn primary wide" data-act="comment-save">Готово</button>'
+    +(i.note?'<button class="btn wide" data-act="comment-clear">Убрать комментарий</button>':'')+'</div>';
+}
+function pcourseSheet(){
+  const t=getTable(route.id);const cur=(t&&t.course)||1;
+  let chips='';
+  for(let c=1;c<=Math.max(MAX_COURSE,cur);c++)chips+='<button type="button" class="chip" data-act="set-pcourse" data-c="'+c+'" aria-pressed="'+(c===cur)+'">'+c+'</button>';
+  return '<div class="sheet-h"><h2>Добавлять в курс</h2>'+closeBtn+'</div><p class="hint">Новые блюда из меню попадут в выбранный курс.</p><div class="chips big">'+chips+'</div>';
+}
 function renderSheet(){
   const el=$('#sheet');
   if(!sheet){el.hidden=true;el.innerHTML='';return;}
   const old=el.querySelector('.sheet');const top=old?old.scrollTop:0;
   el.hidden=false;
-  const inner=sheet.type==='seat'?seatSheet():sheet.type==='table'?tableSheet():sheet.type==='course'?courseSheet():sheet.type==='guide'?guideSheet():itemSheet();
+  const inner=sheet.type==='seat'?seatSheet():sheet.type==='table'?tableSheet():sheet.type==='course'?courseSheet():sheet.type==='guide'?guideSheet():sheet.type==='comment'?commentSheet():sheet.type==='pcourse'?pcourseSheet():itemSheet();
   el.innerHTML='<div class="backdrop" data-act="sheet-close"></div><div class="sheet" role="dialog" aria-modal="true">'+inner+'</div>';
   const nw=el.querySelector('.sheet');if(nw&&top)nw.scrollTop=top;
 }
@@ -741,6 +773,20 @@ function syncSheet(){
   const g=id=>{const e=document.getElementById(id);return e?e.value:null;};
   if(sheet.type==='table'){const v=g('f-tnote');if(v!==null)sheet.note=v;}
   else if(sheet.type==='item'){const v=g('f-note');if(v!==null)sheet.note=v;}
+  else if(sheet.type==='comment'){const v=g('f-cm');if(v!==null)sheet.note=v;}
+}
+function openComment(id){
+  const t=getTable(route.id);const i=t&&t.items.find(x=>x.id===id);if(!i)return;
+  sheet={type:'comment',id:i.id,tableId:t.id,note:i.note||''};
+  renderSheet();
+  const el=$('#f-cm');
+  if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length);}catch(e){}}
+}
+function saveComment(clear){
+  syncSheet();
+  const t=getTable(sheet.tableId);const i=t&&t.items.find(x=>x.id===sheet.id);
+  if(i){i.note=clear?'':sheet.note.trim();save();}
+  sheet=null;renderSheet();refresh();
 }
 function openItemSheet(i){
   const t=getTable(route.id);
@@ -766,18 +812,12 @@ function saveItem(){
   syncSheet();
   const t=getTable(sheet.tableId);const i=t&&t.items.find(x=>x.id===sheet.id);
   if(!i){sheet=null;renderSheet();return;}
-  const cookChanged=sheet.cook!==i.cook;
   i.qty=sheet.qty;i.seat=sheet.seat;i.note=sheet.note.trim();
   if(i.status==='new')i.course=sheet.course;
-  if(i.status!=='served'){
-    i.cook=sheet.cook;
-    if(cookChanged){const d=S.dishes[dishKey(i.name)];if(d){d.cook=sheet.cook;d.k=Math.max(d.k||0,1);}}
-  }
-  if(i.status==='kitchen')i.alerted=Date.now()-i.sentAt>=i.cook*60000;
   save();sheet=null;renderSheet();refresh();
 }
 function sendToKitchen(i,now){i.status='kitchen';i.sentAt=now;i.servedAt=null;i.alerted=false;i.cook=cookFor(i.name);}
-function markServed(i,now){i.status='served';i.servedAt=now;learn(i);}
+function markServed(i,now){i.status='served';i.servedAt=now;}
 function advance(id){
   const t=getTable(route.id);if(!t)return;
   const i=t.items.find(x=>x.id===id);if(!i)return;
@@ -842,6 +882,9 @@ document.addEventListener('click',e=>{
       if(i&&i.status==='new'){i.course=+b.dataset.c;save();}
       sheet=null;renderSheet();refresh();break;
     }
+    case 'swipe-comment':openComment(id);break;
+    case 'comment-save':if(sheet&&sheet.type==='comment')saveComment(false);break;
+    case 'comment-clear':if(sheet&&sheet.type==='comment')saveComment(true);break;
     case 'advance':advance(id);break;
     case 'course-send':courseAct(+b.dataset.course,'new');break;
     case 'course-serve':courseAct(+b.dataset.course,'kitchen');break;
@@ -852,7 +895,8 @@ document.addEventListener('click',e=>{
     case 'mp-zone':ui.zone=b.dataset.z;ui.cat=null;renderMpBody();{const sc=$('#mp-scroll');if(sc)sc.scrollTop=0;}break;
     case 'pick-cat':ui.cat=+b.dataset.i;renderMpBody();{const sc=$('#mp-scroll');if(sc)sc.scrollTop=0;}break;
     case 'mp-back':ui.cat=null;renderMpBody();break;
-    case 'mp-course':{const t=getTable(route.id);if(t){t.course=+b.dataset.c;save();renderMpBody();}break;}
+    case 'mp-course-pick':sheet={type:'pcourse'};renderSheet();break;
+    case 'set-pcourse':{const t=getTable(route.id);if(t){t.course=+b.dataset.c;save();}sheet=null;renderSheet();renderMpBody();break;}
     case 'mp-clear':{ui.q='';const q=$('#mp-q');if(q){q.value='';q.focus();}b.hidden=true;renderMpBody();break;}
     case 'add-dish':addDish(b.dataset.k);break;
     case 'sheet-close':sheet=null;renderSheet();break;
@@ -915,7 +959,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){sheet=null;renderSheet();return;}
     if(e.key==='Enter'&&e.target&&e.target.tagName==='INPUT'){
       e.preventDefault();
-      if(sheet.type==='table')saveTable();else if(sheet.type==='item')saveItem();
+      if(sheet.type==='table')saveTable();else if(sheet.type==='item')saveItem();else if(sheet.type==='comment')saveComment(false);
     }
     return;
   }
@@ -936,7 +980,25 @@ document.addEventListener('keydown',e=>{
   vv.addEventListener('resize',set);vv.addEventListener('scroll',set);set();
 })();
 
-/* ---------- смахивание влево ---------- */
+/* прокрутка панели меню и листов не должна «протекать» на заказ под ними */
+let tsx=0,tsy=0;
+document.addEventListener('touchstart',e=>{const t=e.touches[0];if(t){tsx=t.clientX;tsy=t.clientY;}},{passive:true});
+document.addEventListener('touchmove',e=>{
+  const tg=e.target;
+  if(!tg||!tg.closest||!tg.closest('.mp,.sheet,.backdrop'))return;
+  const t=e.touches[0];if(!t)return;
+  const dx=t.clientX-tsx,dy=t.clientY-tsy;
+  if(Math.abs(dx)>Math.abs(dy)&&tg.closest('.mp-course,.chips.scroll'))return;
+  const sc=tg.closest('.mp-scroll,.sheet');
+  if(sc){
+    const top=sc.scrollTop<=0,bot=sc.scrollTop+sc.clientHeight>=sc.scrollHeight-1;
+    if((dy>0&&top)||(dy<0&&bot))e.preventDefault();
+    return;
+  }
+  e.preventDefault();
+},{passive:false});
+
+/* ---------- смахивание ---------- */
 let sw=null,swallow=false,swTimer=null;
 function closeSwipes(except){
   document.querySelectorAll('.sw.open').forEach(w=>{
@@ -953,7 +1015,7 @@ document.addEventListener('pointerdown',e=>{
   closeSwipes(fg?fg.parentElement:null);
   if(!fg||(e.pointerType==='mouse'&&e.button!==0)){sw=null;return;}
   const wrap=fg.parentElement;
-  sw={wrap,fg,x0:e.clientX,y0:e.clientY,base:wrap.classList.contains('open')?-SW_W:0,x:0,mode:null,id:e.pointerId};
+  sw={wrap,fg,x0:e.clientX,y0:e.clientY,base:wrap.classList.contains('open')?-SW_W:0,x:0,mode:null,id:e.pointerId,hasCm:!!wrap.querySelector('.sw-cm')};
 });
 document.addEventListener('pointermove',e=>{
   if(!sw||e.pointerId!==sw.id)return;
@@ -963,7 +1025,7 @@ document.addEventListener('pointermove',e=>{
     else if(Math.abs(dy)>8){sw=null;return;}
     else return;
   }
-  sw.x=Math.max(-SW_W-20,Math.min(0,sw.base+dx));
+  sw.x=Math.max(-SW_W-20,Math.min(sw.hasCm?SW_W+20:0,sw.base+dx));
   sw.fg.style.transform='translateX('+sw.x+'px)';
 });
 function endSwipe(e){
@@ -971,11 +1033,12 @@ function endSwipe(e){
   const s=sw;sw=null;
   s.fg.style.transition='';
   if(s.mode==='h'){
-    const open=s.x<-SW_W*0.45;
+    const open=s.x<-SW_W*0.45;const wantCm=s.hasCm&&s.x>SW_W*0.8;
     s.fg.style.transform=open?'translateX(-'+SW_W+'px)':'';
     s.wrap.classList.toggle('open',open);
     if(!open)setTimeout(()=>s.wrap.classList.remove('drag'),220);
     swallow=true;clearTimeout(swTimer);swTimer=setTimeout(()=>{swallow=false;},350);
+    if(wantCm)openComment(s.wrap.dataset.iid);
   }else if(e.type==='pointerup'&&s.wrap.classList.contains('open')){
     closeSwipes(null);
     swallow=true;clearTimeout(swTimer);swTimer=setTimeout(()=>{swallow=false;},350);
