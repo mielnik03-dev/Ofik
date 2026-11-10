@@ -346,13 +346,14 @@ const TOPS=['Молоко 50 мл','Альтернативное молоко 50
 const MODDEF={};const RENAMED={};
 (function(){
   const VOL={label:'Объём',opts:['500 мл','1 л']};
+  const NOVOL=['горячий шоколад','глинтвейн б/а','глинтвейн алкогольный'];
   MENU.forEach(m=>{
     const n=m[2],base=n.replace(/\s*\([^)]*\)\s*$/,''),bk=dishKey(base);
     let def=null;
     if(bk==='молочный коктейль')def={groups:[{label:'Вкус',opts:['Ванильный','Клубничный','Шоколадный']}],tops:false};
     else if(bk==='уха из красной и белой рыбы')def={groups:[{label:'Подача',opts:['Классическая','Со сливками']}],tops:false};
     else if(bk==='какао')def={groups:[{label:'Зефир',opts:['С зефиром','Без зефира']}],tops:false};
-    else if(m[0]==='bar'&&(m[1]==='Чайная карта'||m[1]==='Согревающие напитки'||/^Чай /.test(base)))def={groups:[VOL],tops:true};
+    else if(NOVOL.indexOf(bk)<0&&m[0]==='bar'&&(m[1]==='Чайная карта'||m[1]==='Согревающие напитки'||/^Чай /.test(base)))def={groups:[VOL],tops:true};
     if(def){MODDEF[bk]=def;if(base!==n){RENAMED[dishKey(n)]=base;m[2]=base;}}
   });
 })();
@@ -424,7 +425,7 @@ S.settings=Object.assign({sound:true,wake:false},S.settings||{});
       if(typeof i.course!=='number')i.course=OLD[i.course]||1;
       if(i.learned===undefined)i.learned=i.status==='served';
       const rn=RENAMED[dishKey(i.name)];if(rn)i.name=rn;
-      if(!Array.isArray(i.mods))i.mods=[];
+      if(!Array.isArray(i.mods)||!MODDEF[dishKey(i.name)])i.mods=[];
       if(!Array.isArray(i.tops))i.tops=[];
       if(typeof i.seat!=='number')i.seat=0;
       const d=S.dishes[dishKey(i.name)];
